@@ -1,0 +1,117 @@
+services:
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    restart: unless-stopped
+    container_name: bazarr
+    domainname: ${SUBDOMAIN_BAZARR}.${DOMAIN}
+    ports:
+      - 6767:6767
+    environment:
+      - PUID=${ENV_PUID}
+      - PGID=${ENV_PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONFIG_DIR}/bazarr:/config
+      - ${DATA_DIR}:/data
+    depends_on:
+      - decypharr
+
+  decypharr:
+    image: cy01/blackhole:latest
+    restart: unless-stopped
+    container_name: decypharr
+    domainname: ${SUBDOMAIN_DECYPHARR}.${DOMAIN}
+    ports:
+      - 8282:8282
+    volumes:
+      - ${CONFIG_DIR}/decypharr:/app
+      - ${DATA_DIR}/downloads:/data/downloads:rshared
+    devices:
+      - /dev/fuse:/dev/fuse:rwm
+    cap_add:
+      - SYS_ADMIN
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    restart: unless-stopped
+    container_name: jellyfin
+    domainname: ${SUBDOMAIN_JELLYFIN}.${DOMAIN}
+    ports:
+      - 8096:8096/tcp
+    environment:
+      - PUID=${ENV_PUID}
+      - PGID=${ENV_PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONFIG_DIR}/jellyfin:/config
+      - ${DATA_DIR}:/data:rslave
+    depends_on:
+      - radarr
+      - sonarr
+
+  jellyseerr:
+    image: ghcr.io/fallenbagel/jellyseerr:latest
+    restart: unless-stopped
+    container_name: jellyseerr
+    domainname: ${SUBDOMAIN_JELLYSEER}.${DOMAIN}
+    ports:
+      - 5055:5055
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONFIG_DIR}/jellyseerr:/app/config
+    depends_on:
+      - prowlarr
+      - radarr
+      - sonarr
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    restart: unless-stopped
+    container_name: prowlarr
+    domainname: ${SUBDOMAIN_PROWLARR}.${DOMAIN}
+    ports:
+      - 9696:9696
+    environment:
+      - PUID=${ENV_PUID}
+      - PGID=${ENV_PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONFIG_DIR}/prowlarr:/config
+    depends_on:
+      - decypharr
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    restart: unless-stopped
+    container_name: radarr
+    domainname: ${SUBDOMAIN_RADARR}.${DOMAIN}
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=${ENV_PUID}
+      - PGID=${ENV_PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONFIG_DIR}/radarr:/config
+      - ${DATA_DIR}:/data
+    depends_on:
+      - decypharr
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    restart: unless-stopped
+    container_name: sonarr
+    domainname: ${SUBDOMAIN_SONARR}.${DOMAIN}
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=${ENV_PUID}
+      - PGID=${ENV_PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONFIG_DIR}/sonarr:/config
+      - ${DATA_DIR}:/data
+    depends_on:
+      - decypharr

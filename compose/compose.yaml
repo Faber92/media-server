@@ -99,6 +99,21 @@ services:
     depends_on:
       - decypharr
 
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:latest
+    restart: unless-stopped
+    container_name: recyclarr
+    user: ${ENV_PUID}:${ENV_PGID}
+    environment:
+      - TZ=${TIMEZONE}
+      - RECYCLARR_CREATE_CONFIG=true
+    volumes:
+      - ${CONFIG_DIR}/recyclarr:/config
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      - radarr
+      - sonarr
+
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     restart: unless-stopped

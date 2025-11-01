@@ -66,6 +66,61 @@ services:
       - radarr
       - sonarr
 
+  # overseerr:
+  #   image: lscr.io/linuxserver/overseerr:latest
+  #   restart: unless-stopped
+  #   container_name: overseerr
+  #   domainname: ${SUBDOMAIN_OVERSEERR}.${DOMAIN}
+  #   ports:
+  #     - 5055:5055
+  #   environment:
+  #     - PUID=${ENV_PUID}
+  #     - PGID=${ENV_PGID}
+  #     - TZ=${TIMEZONE}
+  #   volumes:
+  #     - ${CONFIG_DIR}/overseerr:/app/config
+  #   depends_on:
+  #     - prowlarr
+  #     - radarr
+  #     - sonarr
+
+  # qbittorrent:
+  #   image: lscr.io/linuxserver/qbittorrent:latest
+  #   restart: unless-stopped
+  #   container_name: qbittorrent
+  #   domainname: ${SUBDOMAIN_QBITTORRENT}.${DOMAIN}
+  #   ports:
+  #     - 8080:8080 # Web UI port
+  #     - 6881:6881 # Torrent port TCP
+  #     - 6881:6881/udp # Torrent port UDP
+  #   environment:
+  #     - PUID=${ENV_PUID}
+  #     - PGID=${ENV_PGID}
+  #     - TZ=${TIMEZONE}
+  #     - WEBUI_PORT=8080
+  #     - TORRENTING_PORT=6881
+  #   volumes:
+  #     - ${CONFIG_DIR}/qbittorrent:/config
+  #     - ${DATA_DIR}/downloads:/data/downloads
+
+  # plex:
+  #   image: lscr.io/linuxserver/plex:latest
+  #   restart: unless-stopped
+  #   container_name: plex
+  #   ports:
+  #     - 32400:32400/tcp
+  #   environment:
+  #     - PUID=${ENV_PUID}
+  #     - PGID=${ENV_PGID}
+  #     - TZ=${TIMEZONE}
+  #     - VERSION=docker
+  #   volumes:
+  #     - ${CONFIG_DIR}/plex:/config
+  #     - ${DATA_DIR}/media:/data/media
+  #   network_mode: host
+  #   depends_on:
+  #     - rclone
+
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     restart: unless-stopped
@@ -81,6 +136,7 @@ services:
       - ${CONFIG_DIR}/prowlarr:/config
     depends_on:
       - decypharr
+      # - rclone
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -98,6 +154,7 @@ services:
       - ${DATA_DIR}:/data
     depends_on:
       - decypharr
+      # - rclone
 
   recyclarr:
     image: ghcr.io/recyclarr/recyclarr:latest
@@ -113,6 +170,26 @@ services:
     depends_on:
       - radarr
       - sonarr
+
+  # rclone:
+  #   image: rclone/rclone:latest
+  #   restart: unless-stopped
+  #   container_name: rclone
+  #   environment:
+  #     - PUID=${ENV_PUID}
+  #     - PGID=${ENV_PGID}
+  #     - TZ=${TIMEZONE}
+  #   volumes:
+  #     - ${CONFIG_DIR}/rclone/rclone.conf:/config/rclone/rclone.conf
+  #     - ${ROOT_DIR}/data/downloads:/data:rshared
+  #     - ./rclone.conf:/config/rclone/rclone.conf
+  #   devices:
+  #     - /dev/fuse:/dev/fuse:rwm
+  #   cap_add:
+  #     - SYS_ADMIN
+  #   depends_on:
+  #     - zurg
+  #   command: "mount zurg: /data --allow-other --allow-non-empty --dir-cache-time 10s --vfs-cache-mode full"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -130,3 +207,14 @@ services:
       - ${DATA_DIR}:/data
     depends_on:
       - decypharr
+      # - rclone
+
+  # zurg:
+  #   image: ghcr.io/debridmediamanager/zurg-testing:latest
+  #   restart: unless-stopped
+  #   container_name: zurg
+  #   ports:
+  #     - 9999:9999
+  #   volumes:
+  #     - ${CONFIG_DIR}/zurg/config.yml:/app/config.yml
+  #     - ${DATA_DIR}/downloads:/app/data
